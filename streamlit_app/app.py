@@ -138,11 +138,14 @@ def main():
     if sample_name:
         with (ROOT / "examples" / f"{sample_name}.csv").open(encoding="utf-8") as file:
             sample_values = csv_values(file, engine.features)
+        st.session_state["input_mode"] = "Enter values manually"
+        for index, name in enumerate(engine.features):
+            st.session_state[f"manual_{index}"] = float(sample_values[name])
         prediction = engine.predict(sample_values)
         with st.expander(f"View {sample_name} sample measurements"):
             st.dataframe(pd.DataFrame({"Feature": list(sample_values), "Value": list(sample_values.values())}), hide_index=True)
 
-    mode = st.radio("How will you enter the flow?", ("Upload CSV", "Enter values manually"), horizontal=True)
+    mode = st.radio("How will you enter the flow?", ("Upload CSV", "Enter values manually"), horizontal=True, key="input_mode")
     input_column, result_column = st.columns([3, 2], gap="large")
     with input_column:
         st.subheader("Flow details")
