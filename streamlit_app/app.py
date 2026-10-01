@@ -119,7 +119,7 @@ def show_results(engine, prediction):
 
 
 def main():
-    st.set_page_config(page_title="FlowGuard", layout="wide")
+    st.set_page_config(page_title="FlowGuard", page_icon="🌸", layout="wide")
     st.title("FlowGuard")
     st.write("Compare Random Forest and Logistic Regression on one network flow using the saved 69-feature study models.")
     try:
@@ -128,8 +128,21 @@ def main():
         st.error(f"Could not load model.pkl: {error}")
         st.stop()
 
-    mode = st.radio("How will you enter the flow?", ("Upload CSV", "Enter values manually"), horizontal=True)
     prediction = None
+    st.subheader("Try a sample flow")
+    st.caption("Pick a saved example to see its measurements and both model predictions.")
+    sample_columns = st.columns(2)
+    benign_clicked = sample_columns[0].button("Try BENIGN sample")
+    ddos_clicked = sample_columns[1].button("Try DDoS sample")
+    sample_name = "BENIGN" if benign_clicked else "DDoS" if ddos_clicked else None
+    if sample_name:
+        with (ROOT / "examples" / f"{sample_name}.csv").open(encoding="utf-8") as file:
+            sample_values = csv_values(file, engine.features)
+        prediction = engine.predict(sample_values)
+        with st.expander(f"View {sample_name} sample measurements"):
+            st.dataframe(pd.DataFrame({"Feature": list(sample_values), "Value": list(sample_values.values())}), hide_index=True)
+
+    mode = st.radio("How will you enter the flow?", ("Upload CSV", "Enter values manually"), horizontal=True)
     input_column, result_column = st.columns([3, 2], gap="large")
     with input_column:
         st.subheader("Flow details")
